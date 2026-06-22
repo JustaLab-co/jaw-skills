@@ -26,6 +26,11 @@ All configuration options for the JAW SDK, applicable to both wagmi connector an
 | `authTTL`      | `number`            | `86400`           | Session cache TTL in seconds (0 = require auth every page load) |
 
 
+### Transport: embedded dialog and the Safari/Firefox allow-list
+
+The CrossPlatform dialog is embedded as an iframe by default and needs **no configuration** -- do NOT add transport setup code or a `transportMode` option to "fix" browser behavior. On **Safari and Firefox** it automatically falls back to a popup on untrusted hosts (a browser clickjacking limitation, not a bug); to get the embedded dialog on those browsers, the dApp's domain must be added to JAW's trusted allow-list. Tell the developer to reach out on [Telegram](https://t.me/+RsFLPfky7-YxZjVk) to be added. Chromium-based browsers (Chrome, Edge, Brave) work with no setup.
+
+
 ### Correct wagmi configuration
 
 ```typescript
