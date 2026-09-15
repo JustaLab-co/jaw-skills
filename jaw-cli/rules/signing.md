@@ -1,6 +1,6 @@
 ## Signing
 
-Sign messages and typed data using the connected passkey account. In default mode, signing requires browser interaction for passkey confirmation. In auto mode (`--session`), signing happens locally with the session key.
+Sign messages and typed data with the passkey account. Signing always goes through the browser: a session cannot do it, and the refusal is deliberate.
 
 ### Sign a plain message (personal_sign)
 
@@ -55,20 +55,24 @@ jaw rpc call wallet_sign \
 
 Returns a hex signature string.
 
-### Sign with auto mode (no browser)
+### A session cannot sign
 
-With `--session`, signing uses the local session key — no browser needed:
+`--session` refuses `personal_sign` and `eth_signTypedData_v4`:
 
-```bash
-jaw rpc call personal_sign '["Hello from agent", "0xSESSION_ADDRESS"]' --session -o json -y
-jaw rpc call eth_signTypedData_v4 "..." --session -o json -y
+```
+personal_sign is not available in auto mode: a signature the session makes is not
+a call, so it never reaches the spend caps or the ledger. Run it through the
+browser instead.
 ```
 
-Note: `wallet_sign` is not supported in session mode. Use `personal_sign` or `eth_signTypedData_v4`.
+That is the point rather than a gap. A spend cap and the payment ledger both measure calls. An EIP-3009 transfer authorization over the session's own USDC is a plain typed-data request, indistinguishable from any other until it settles, so a session that could sign one could move its balance with nothing counting it.
+
+Sign through the browser, or, if what you want is to pay for an HTTP resource, use `jaw x402 pay`, which signs exactly that kind of authorization inside the caps that measure it.
 
 ### Key rules
 
-- In default mode, you MUST keep the browser tab open — signing requires passkey confirmation
+- You MUST keep the browser tab open while signing: it needs a passkey confirmation
+- Do NOT pass `--session` to a signing method. It is refused, and the reason is in this file.
 - `personal_sign` params are `[message, address]` — always pass both; use `eth_accounts` to get the address
 - `eth_signTypedData_v4` params are `[address, typedDataJsonString]` — the typed data must be a JSON-encoded **string**, not an object; use `jq` to encode: `($td | tojson)`
 - `wallet_sign` uses `{request:{type:"0x45"|"0x01", data:{...}}}` — not `{account, data}`

@@ -97,7 +97,7 @@ Override the default chain for a specific command:
 jaw rpc call wallet_sendCalls '{"calls":[{"to":"0xRECIPIENT","value":"0"}]}' -c 1 -o json -y
 ```
 
-### Send with auto mode (no browser)
+### Send with a session (no browser)
 
 If a session is set up, add `--session` to send without browser approval. The `permissionId` is auto-injected:
 

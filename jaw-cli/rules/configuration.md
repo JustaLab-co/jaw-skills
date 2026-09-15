@@ -43,14 +43,16 @@ The API key is always redacted in output.
 
 | Key              | Required | Set via CLI | Description                                                                                  |
 | ---------------- | -------- | ----------- | -------------------------------------------------------------------------------------------- |
-| `apiKey`         | Yes      | Yes         | JAW API key. Obtain from `dashboard.jaw.id`.                                                 |
+| `apiKey`         | No       | Yes         | JAW API key. Obtain from `dashboard.jaw.id`. A CLI without one is handed a key during connect and keeps it. |
 | `defaultChain`   | Yes      | Yes         | Default chain ID. E.g. `1` (Ethereum), `8453` (Base), `84532` (Base Sepolia).                |
 | `keysUrl`        | No       | Yes         | JAW keys URL. Default: `https://keys.jaw.id`. Only change for self-hosted deployments.       |
 | `ens`            | No       | Yes         | ENS domain for on-chain identity. Must be configured in the JAW dashboard before using here. |
 | `relayUrl`       | No       | Yes         | Relay WebSocket URL. Default: `wss://relay.jaw.id`.                                          |
-| `sessionExpiry`  | No       | Yes         | Session key expiry in days. Default: 7. Only used by auto mode.                              |
+| `sessionExpiry`  | No       | Yes         | Session key expiry in days. Default: 7. Only used by a session.                              |
+| `grantCeiling`   | No       | Yes         | The most any grant made from this machine may ask for, as `<amount>/<period>`. Unset means no ceiling. |
+| `x402`           | No       | Dotted path | The spend caps and allow lists for payments. See <rules/x402.md>.                            |
 | `paymasters`     | No       | Edit JSON   | Per-chain paymaster configuration. See below.                                                |
-| `permissions`    | No       | Edit JSON   | Session key permission scope. See below. Only used by auto mode.                             |
+| `permissions`    | No       | Edit JSON   | Session key permission scope. See below. `jaw session setup --x402` builds one instead.      |
 
 ### Paymasters (nested — use config write or edit JSON)
 
@@ -73,7 +75,7 @@ Previously, `paymasterUrl` was a single string. It is automatically migrated to 
 
 ### Permissions (nested — use config write or edit JSON)
 
-Defines the scope for session keys in auto mode:
+Defines the scope for a session key. `jaw session setup --x402 --limit 25/day` builds this from the asset registry instead, which is what most callers want:
 
 ```json
 "permissions": {
@@ -106,19 +108,19 @@ Environment variables override the config file.
 | `JAW_API_KEY`  | `apiKey`                                                      |
 | `JAW_CHAIN_ID` | `defaultChain`                                                |
 | `JAW_OUTPUT`   | Output format (`json` or `human`) — no config file equivalent |
-| `JAW_SESSION`  | Enable auto mode (`true`) — equivalent to `--session` flag    |
+| `JAW_SESSION`  | Sign with the session key (`true`), the same as `--session`   |
 
 ### External prerequisites
 
 Three config values require setup outside the CLI before use:
 
-- **`apiKey`** — Obtain from `dashboard.jaw.id`. Required for all RPC calls.
-- **`paymasters`** — Obtain paymaster URLs from your provider (e.g., Pimlico). Required only if sponsoring gas.
+- **`apiKey`** — Obtain from `dashboard.jaw.id`. Optional: a CLI that carries none is handed one during the connect it already makes. Set one to attribute usage to your own workspace.
+- **`paymasters`** — Obtain paymaster URLs from your provider. Only if you are bringing your own: a session already pays for its own operations in USDC through JAW's paymaster, and configuring one that sponsors nothing in USDC puts the account back on native gas it does not hold.
 - **`ens`** — Must be configured and verified in the JAW dashboard before setting it here.
 
 ### Key rules
 
-- You MUST set `apiKey` before making any RPC call
+- The spend caps under `x402` and `grantCeiling` are set by a human at a terminal. They are deliberately unreachable from the MCP tools, so an agent cannot raise its own limits.
 - You MUST set `defaultChain` or pass `-c <chainId>` with every `jaw rpc call` command
 - Use `jaw config write` for initial setup with nested config (paymasters, permissions)
 - Use `jaw config set` for updating individual flat values

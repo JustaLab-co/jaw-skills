@@ -13,4 +13,4 @@ npx skills add JustaName-id/jaw-skills
 | Skill                    | Description                                                       |
 | ------------------------ | ----------------------------------------------------------------- |
 | `jaw-sdk-best-practices` | Best practices, patterns, and rules for building with the JAW SDK |
-| `jaw-cli`                | Best practices and usage guide for the JAW CLI (@jaw.id/cli)      |
+| `jaw-cli`                | Driving a JAW account from a terminal or an agent: sessions, x402 payments, MCP |

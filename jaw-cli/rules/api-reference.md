@@ -2,7 +2,7 @@
 
 Full reference for all RPC methods supported by `jaw rpc call`. Pass `params` as a JSON string. If the native params is a single value or object, the CLI wraps it automatically, you do not need to add the outer array. If the native params is already an array (e.g. a list of permissions to revoke), pass it as-is.
 
-Methods that require browser interaction (passkey confirmation) are marked **[browser]**. Methods supported in auto mode (`--session`) are marked **[session]**.
+Methods that require browser interaction (passkey confirmation) are marked **[browser]**. The four a session signs without one are marked **[session]**: signing methods are not among them, on purpose. See <rules/session.md>.
 
 ---
 
@@ -210,7 +210,7 @@ jaw rpc call wallet_getCallsHistory -o json
 
 ---
 
-### personal_sign **[browser]** **[session]**
+### personal_sign **[browser]**
 
 Sign a message with the connected account. Params are `[message, address]`.
 
@@ -228,7 +228,7 @@ jaw rpc call personal_sign '["0x48656c6c6f", "0xYOUR_ADDRESS"]' -o json -y
 
 ---
 
-### eth_signTypedData_v4 **[browser]** **[session]**
+### eth_signTypedData_v4 **[browser]**
 
 Sign EIP-712 typed structured data. Params are `[address, typedDataJsonString]` — address first, typed data as a JSON-encoded **string**.
 
