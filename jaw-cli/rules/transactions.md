@@ -107,7 +107,7 @@ jaw rpc call wallet_sendCalls \
   --session -o json -y
 ```
 
-All the same patterns work (batching, ERC-20, etc.) — just add `--session`. See <rules/auto-mode.md> for setup.
+All the same patterns work, batching and ERC-20 included: add `--session`. See <rules/session.md> for setup.
 
 ### Key rules
 
