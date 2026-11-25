@@ -1,11 +1,13 @@
 ---
 name: jaw-cli
-description: Usage guide for the JAW CLI (@jaw.id/cli) and its MCP server. Use this skill when driving a JAW.id smart account from a terminal or as an agent, granting a session so an agent can act without a browser, paying HTTP endpoints that answer 402 with x402, configuring the CLI, sending transactions, signing messages, managing permissions, or when asked about JAW CLI commands, spend limits, or the payment ledger.
+description: Usage guide for the JAW CLI (@jaw.id/cli), its local MCP server, and the hosted JAW MCP server at mcp.jaw.id. Use this skill when driving a JAW.id smart account from a terminal, a chat app or as an agent, choosing between the hosted MCP and the CLI, asking the owner to approve a transfer, swap, bridge or signature, granting a permission or a session so an agent can act without a browser, paying HTTP endpoints that answer 402 with x402, configuring the CLI, sending transactions, signing messages, managing permissions, or when asked about JAW CLI commands, spend limits, or the payment ledger.
 ---
 
-# JAW CLI
+# JAW CLI and MCP
 
-A terminal interface and MCP server for JAW.id passkey-authenticated smart accounts.
+A terminal interface, a local MCP server and a hosted MCP server for JAW.id passkey-authenticated smart accounts.
+
+Written against `@jaw.id/cli@0.12.3` and the hosted server as it stood at that release. In the jaw-skills repo, `scripts/check-tools.mjs` fails when either server's tools and these docs disagree.
 
 ## When to use
 
@@ -13,15 +15,27 @@ A terminal interface and MCP server for JAW.id passkey-authenticated smart accou
 - Granting a session so an agent can act without a passkey per operation
 - Paying an endpoint that answers `402 Payment Required`
 - Sending transactions, signing messages, managing permissions
-- Setting up the MCP server, and knowing which tool does what
+- Choosing between the hosted MCP server and the CLI
+- Connecting a chat app or agent to `mcp.jaw.id`, and knowing which tool does what
+- Asking the owner to approve a transfer, swap, bridge, signature or permission
+- Setting up the local MCP server
 - Reading the payment ledger, or explaining why a payment was refused
 - Debugging a CLI error
 
-## The two ways to use it
+## Hosted MCP or CLI
+
+| Use | When |
+| --- | --- |
+| Hosted MCP, `https://mcp.jaw.id/mcp` | The agent runs in a chat app or coding agent that supports remote MCP servers, with no shell or no local browser. The owner approves on whatever device holds their passkey. Swaps, bridges, add funds, token lookup, DeFi positions, linked accounts. See <rules/hosted-mcp.md>. |
+| CLI, or `jaw mcp` | A shell and a local browser are available: scripts, CI, a terminal agent. Raw RPC methods, the local payment ledger, a `grantCeiling` set by a human at a terminal. See the command reference below and <rules/mcp.md>. |
+
+Pick one per task. A permission or session granted through one does not exist on the other, and `jaw_grant_permissions` and `jaw_session_status` exist on both with different meanings.
+
+## The two ways the CLI acts
 
 **Through the browser.** Every call that touches the account opens `keys.jaw.id` and waits for a passkey. This is `jaw rpc call <method>`. Nothing is stored that could act on its own.
 
-**Through a session.** `jaw session setup` generates a key on this machine and grants it a permission on the account. From then on the key signs without a prompt, and what it can do is bounded by that permission, which a contract enforces. This is what makes an agent autonomous, and it is why the permission matters more than anything else on this page.
+**Through a session.** `jaw session setup`, or `jaw_grant_permissions` from `jaw mcp`, generates a key on this machine and grants it a permission on the account once the owner approves. From then on the key signs without a prompt, and what it can do is bounded by that permission, which a contract enforces. This is what makes an agent autonomous, and it is why the permission matters more than anything else on this page.
 
 ## Key facts
 
@@ -66,9 +80,12 @@ jaw session status
 
 # End it: revoke on chain and delete the local key
 jaw session revoke
+
+# Delete the local session even if a permission could not be revoked
+jaw session revoke --force
 ```
 
-`--limit` is `<amount>/<period>`, where the period is `minute`, `hour`, `day`, `week`, `month`, `year` or `forever`.
+`--limit` is `<amount>/<period>`, where the period is `minute`, `hour`, `day`, `week`, `month`, `year` or `forever`. It only applies with `--x402`; with `--permissions`, put the cap in the permission. `--force` leaves the unrevoked permissions live on chain until they expire, and prints their ids.
 
 ### jaw x402 <pay|status|log>
 
@@ -79,11 +96,14 @@ jaw x402 pay https://api.example.com/resource
 # Actually pay
 jaw x402 pay https://api.example.com/resource --pay
 
+# A POST with a body, capped for this call in base units (0.05 USDC)
+jaw x402 pay https://api.example.com/resource --pay --method POST --body '{"q":1}' --max-amount 50000
+
 # Whose funds, which caps, what has been spent
 jaw x402 status
 
-# The payment ledger
-jaw x402 log
+# The payment ledger: the last 20 refused attempts
+jaw x402 log --limit 20 --status refused
 ```
 
 ### jaw config <show|set|write>
@@ -102,6 +122,10 @@ Starts the MCP server over stdio.
 ### jaw disconnect
 
 Closes the relay session and the browser tab.
+
+### jaw version
+
+Prints the installed version.
 
 ## Rule index
 
@@ -124,7 +148,8 @@ Closes the relay session and the browser tab.
 
 ### 4. Agent integration
 
-- <rules/mcp.md> MCP server setup, the tools, the resources
+- <rules/hosted-mcp.md> The hosted MCP server: connecting, scopes, every tool, what the owner approves, the limits
+- <rules/mcp.md> The local MCP server (`jaw mcp`): setup, the tools, the resources
 
 ### 5. Reference
 

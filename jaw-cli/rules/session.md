@@ -4,7 +4,7 @@ A session lets an agent act on a JAW account without a passkey per operation. A 
 
 ### How it works
 
-1. **Grant, once, human required.** `jaw session setup` generates a key, opens the browser for the passkey that approves `wallet_grantPermissions`, and writes the keystore and the session config to `~/.jaw/` at mode `0600`.
+1. **Grant, once, human required.** `jaw session setup` generates a key, opens the browser for the passkey that approves `wallet_grantPermissions`, and writes the keystore and the session config to `~/.jaw/` at mode `0600`. From `jaw mcp`, an agent asks for the same thing with `jaw_grant_permissions`: an x402 budget only, and the owner still approves it with their passkey.
 2. **Act, autonomously.** `jaw rpc call ... --session` and `jaw x402 pay --pay` load that key, sign locally and send. No browser.
 3. **End it, human required.** `jaw session revoke` opens the browser, revokes on chain, and deletes the local files.
 
@@ -48,6 +48,8 @@ jaw config set grantCeiling 10/day
 ```
 
 A grant is refused when it asks for more than that allowance, or when it resets more often than that period, since the same allowance on a shorter period is more money over the same time.
+
+`jaw_grant_permissions` in `jaw mcp` is held to the same ceiling, and refuses while a session is already active rather than replacing it.
 
 ### Adding to a session
 

@@ -54,6 +54,8 @@ The API key is always redacted in output.
 | `paymasters`     | No       | Edit JSON   | Per-chain paymaster configuration. See below.                                                |
 | `permissions`    | No       | Edit JSON   | Session key permission scope. See below. `jaw session setup --x402` builds one instead.      |
 
+`workspaceApiKey` also appears in the file: the key the CLI was handed during connect, kept apart from `apiKey` and replaced on every connect. It is not settable.
+
 ### Paymasters (nested — use config write or edit JSON)
 
 Per-chain paymaster config. Each key is a chain ID:
