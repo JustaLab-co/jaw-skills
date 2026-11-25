@@ -57,5 +57,5 @@ jaw rpc call eth_requestAccounts -o json
 
 - You MUST have Node.js 18+ installed
 - You MUST have a modern browser available — passkey authentication cannot happen without one
-- You MUST set `apiKey` and `defaultChain` before making RPC calls (see <rules/configuration.md>)
+- You MUST set `defaultChain`, or pass `-c <chainId>`, before making RPC calls (see <rules/configuration.md>). `apiKey` is optional: a CLI without one is handed a key during connect
 - Do NOT close the browser tab that opens — it is the signing backend for all CLI requests

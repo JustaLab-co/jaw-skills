@@ -363,6 +363,19 @@ jaw rpc call wallet_revokePermissions \
 
 ---
 
+### wallet_addFunds **[browser]**
+
+Open the wallet's Add Funds screen: the connected account's address, a QR code, and the networks it accepts deposits on. Nothing is signed, and the call returns when the owner closes the screen. The destination is always the connected account; an `address` in the params is ignored.
+
+**Params:** none, or `{"chainId": "0x2105", "chains": ["0x2105", "0x1"]}`. `chainId` is the network the QR points at, `chains` narrows the networks the screen offers. Both are optional, and `chainId` must be in `chains` when both are sent.
+
+```bash
+jaw rpc call wallet_addFunds -o json
+jaw rpc call wallet_addFunds '{"chainId":"0x2105"}' -o json
+```
+
+---
+
 ### wallet_getPermissions
 
 Get all active permissions for the connected account.
