@@ -49,22 +49,22 @@ Limits below are what the server enforced when this was written. The tool's own 
 | `jaw_prepare_calls` | Build calldata from a function signature and arguments, in the shape `jaw_send_calls` takes, at most 24,576 bytes per call. Sends nothing. |
 | `jaw_session_history` | See what this connection paid and ran on its own. |
 
-**Requests the owner approves.** Each returns a link to show on its own line. The owner has 30 minutes.
+**Requests the owner approves.** Each returns a link to show on its own line, then the agent follows it with the tool below. A request waits up to 30 minutes for the owner; a swap waits only as long as its quote holds.
 
 | Tool | The owner approves | Use it to |
 | --- | --- | --- |
-| `jaw_send_calls` | Up to 100 calls, at most 24,576 bytes of calldata each, run together on one network, and pays the network fee | Do anything asked once: a transfer, a contract call. Simulate first. |
+| `jaw_send_calls` | Up to 100 calls, at most 24,576 bytes of calldata each, run together on one network, and pays the network fee | Do anything asked once: a transfer, a contract call. Simulate first. After showing the link, end the turn. Calls to the wallet itself, the permission manager or an EntryPoint are refused. |
 | `jaw_sign` | A message or typed data, shown in the wallet | Sign for a site that asks for a signature. Say in one sentence what the signature allows. |
-| `jaw_swap` | The swap or bridge deposit, with its token approval, in one batch | Swap on one chain, or swap and bridge across chains, also to pay someone on another network. Up to 5 tokens into one in a single batch. |
+| `jaw_swap` | The swap or bridge deposit, with its token approval, in one batch | Swap on one chain, or swap and bridge across chains, also to pay someone on another network. Up to 5 tokens into one in a single batch. One open swap per connection. `quoteOnly` quotes without a link; with a `permissionId` the swap runs under that custom permission with no link, and `preview` returns the permission it needs. |
 | `jaw_grant_permissions` | A permission for this connection | Let the connection repeat an action or pay web services without asking each time. See below. |
 | `jaw_revoke_permission` | Revoking one permission, and pays the fee | Take back access from this connection, another app, or anything else the wallet granted. |
 | `jaw_add_funds` | Nothing; it opens the wallet's receive screen | Put money into the wallet. There is no card or bank purchase: the owner sends tokens from an exchange or another wallet. |
 | `jaw_add_account` | Adding another of their accounts to this connection | Only when the owner asks to add another account. Moves no funds. |
-| `jaw_session_x402_pay_once` | One payment of a fixed price, up to 100 USDC, to one service | Pay a web service once when the spend limit cannot: there is none, the owner declined one, or the price is over what it has left. |
+| `jaw_session_x402_pay_once` | One payment of a fixed price, up to 100 USDC, to one service | Pay a web service once when the spend limit cannot: there is none, the owner declined one, or the price is over what it has left. Follow it by calling it again with the same input, `idempotencyKey` and `waitSeconds`. |
 
 Swaps, `jaw_find_token` and `jaw_get_token_price` need a swap provider on the server. Without one, `jaw_swap` refuses with `swap_unavailable`.
 
-**Following a request.** Call each one right after the link is shown, with `waitSeconds` (30 suggested, 45 at most), and again while it answers `awaiting_owner`. Never ask the owner whether they approved: the tool knows first. `jaw_get_calls_status` is the exception: never call it in the turn that showed the link, only on the owner's next messages.
+**Following a request.** Never ask the owner whether they approved: these tools know first. The first four take `waitSeconds` (30 suggested, 45 at most) and are called again while they answer `awaiting_owner`: right after the link is shown, except `jaw_get_calls_status`, which waits for the owner's next message.
 
 | Tool | Follows |
 | --- | --- |
@@ -74,7 +74,7 @@ Swaps, `jaw_find_token` and `jaw_get_token_price` need a swap provider on the se
 | `jaw_get_add_account_status` | `jaw_add_account` |
 | `jaw_swap_status` | `jaw_swap`, through approval, deposit and fill, to completed, refunded or failed |
 
-**Acting under a permission.** No approval each time. Needs `wallet:permissions`.
+**Paid web services and runs under a permission.** No approval each time. Paying and running need `wallet:permissions`; quoting a plain GET and searching need only `wallet:read`.
 
 | Tool | Limit | Use it to |
 | --- | --- | --- |
@@ -96,6 +96,8 @@ Swaps, `jaw_find_token` and `jaw_get_token_price` need a swap provider on the se
 
 - **A custom permission**, the default: `spends` (a per-period limit on each token that leaves) and `calls` (contract and function signature) on a chain. Runs go through `jaw_session_execute`. Spends with no calls allow transfers of those tokens to any address. At most 10 actions, 9 when the permission pays its own fees.
 - **A spend limit for paid services**: `x402Budget` with the USDC per day, and `expiresAt` to end it sooner than the connection. Always on the connection's chain, and a new one replaces the current one. Payments go through `jaw_session_x402_pay`.
+
+A connection holds at most 5 live permissions. A permission ends at its `expiresAt` or at the connection's end, whichever comes first.
 
 Offer a permission only when the owner wants an action repeated or run without them, or when you are about to ask approval for the same action a second time. Never on the first request, and always as an offer they can decline. Ask for the narrowest one: only those actions, a limit on every token that leaves, the shortest period, an expiry at the end of the task. Never widen a permission to make a run pass.
 
