@@ -1,7 +1,8 @@
 // A stdio MCP server that answers with the tool names given as arguments. It
 // quits on a request a real client would not send, so a client that skips the
 // handshake fails. `--exit` quits at once, `--silent` never answers, `--noise`
-// prints a line that is not JSON, `--refuse` answers tools/list with an error.
+// prints a line that is not JSON, `--refuse` answers tools/list with an error,
+// `--once` exits right after answering it.
 import { createInterface } from 'node:readline';
 
 const args = process.argv.slice(2);
@@ -30,6 +31,7 @@ createInterface({ input: process.stdin }).on('line', (line) => {
       process.stdout.write(JSON.stringify({ jsonrpc: '2.0', id: msg.id, error: { code: -32601, message: 'no tools here' } }) + '\n');
       return;
     }
-    reply(msg.id, { tools: args.map((name) => ({ name, inputSchema: { type: 'object' } })) });
+    reply(msg.id, { tools: args.filter((a) => !a.startsWith('--')).map((name) => ({ name, inputSchema: { type: 'object' } })) });
+    if (args.includes('--once')) process.exit(0);
   }
 });

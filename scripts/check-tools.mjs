@@ -81,7 +81,10 @@ export function listTools(command, args, timeoutMs = 120_000) {
       }
     });
     child.on('error', (err) => finish(() => reject(err)));
-    child.on('exit', (code) => finish(() => reject(new Error(`${command} exited with code ${code} before listing its tools`))));
+    // 'close' waits for stdout to drain, so a reply written just before exit is still read.
+    child.on('close', (code) => finish(() => reject(new Error(`${command} exited with code ${code} before listing its tools`))));
+    // A server that dies before reading stdin is reported by the 'close' handler, not as EPIPE.
+    child.stdin.on('error', () => {});
     const send = (msg) => child.stdin.write(JSON.stringify({ jsonrpc: '2.0', ...msg }) + '\n');
     send({ id: 1, method: 'initialize', params: { protocolVersion: '2025-06-18', capabilities: {}, clientInfo: { name: 'check-tools', version: '1' } } });
     send({ method: 'notifications/initialized' });

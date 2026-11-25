@@ -45,6 +45,10 @@ test('listTools asks a stdio server for its tools after the handshake', async ()
   assert.deepEqual(await listTools(process.execPath, [fake, 'jaw_x', 'jaw_y']), ['jaw_x', 'jaw_y']);
 });
 
+test('listTools reads a reply the server wrote just before exiting', async () => {
+  for (let i = 0; i < 20; i++) assert.deepEqual(await listTools(process.execPath, [fake, '--once', 'jaw_x']), ['jaw_x']);
+});
+
 test('listTools fails when the server exits without answering', async () => {
   await assert.rejects(listTools(process.execPath, [fake, '--exit']), /exited with code 3/);
 });
