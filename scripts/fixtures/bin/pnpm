@@ -1,0 +1,6 @@
+#!/bin/sh
+# Stands in for pnpm: serves FAKE_TOOLS only when called the way check-tools.mjs
+# must call the CLI.
+expected="--config.minimum-release-age=10080 --config.minimum-release-age-exclude=@jaw.id/* dlx @jaw.id/cli@$FAKE_CLI_VERSION mcp"
+[ "$*" = "$expected" ] || { echo "unexpected pnpm args: $*" >&2; exit 9; }
+exec node "$(dirname "$0")/../fake-mcp.mjs" $FAKE_TOOLS
