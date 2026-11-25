@@ -25,3 +25,12 @@ jobs:
           node-version: 22
       - run: node --test scripts/*.test.mjs
       - run: node scripts/check-tools.mjs
+      - name: Pin is the latest CLI release
+        if: github.event_name == 'schedule' || github.event_name == 'workflow_dispatch'
+        run: |
+          pinned=$(grep -o '@jaw.id/cli@[0-9.]*' jaw-cli/SKILL.md | head -1 | cut -d@ -f3)
+          latest=$(npm view @jaw.id/cli version)
+          if [ "$pinned" != "$latest" ]; then
+            echo "::error::jaw-cli/SKILL.md pins @jaw.id/cli@$pinned, npm has $latest. Bump the pin and run the check."
+            exit 1
+          fi

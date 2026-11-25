@@ -34,7 +34,7 @@ The manifest records the commit it came from. A diff means the docs need the sam
 
 ## 4. When the CLI releases
 
-Bump the version in the "Written against" line of `jaw-cli/SKILL.md` and run step 2. A failure lists the tools to document or remove in `jaw-cli/rules/mcp.md`. Read the release's command flags too: the check covers tool names, not flags or limits.
+The Monday run fails when the pin in `jaw-cli/SKILL.md` is not the latest `@jaw.id/cli` on npm. Bump the version in the "Written against" line of `jaw-cli/SKILL.md` and run step 2. A failure lists the tools to document or remove in `jaw-cli/rules/mcp.md`. Read the release's command flags too: the check covers tool names, not flags or limits.
 
 ## What this does not catch
 
