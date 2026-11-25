@@ -46,14 +46,14 @@ Limits below are what the server enforced when this was written. The tool's own 
 | `jaw_find_token` | Find a token's address on one network from the wallet's trusted list. Use it before naming any token the wallet data does not already give. |
 | `jaw_get_token_price` | Read the USD price and 24 hour change of well-known coins. A price informs the owner; it is never an amount to send. |
 | `jaw_simulate_calls` | Dry-run up to 100 calls and 40,000 bytes of calldata. Run it before `jaw_send_calls` and before every `jaw_session_execute`. |
-| `jaw_prepare_calls` | Build calldata from a function signature and arguments, in the shape `jaw_send_calls` takes. Sends nothing. |
+| `jaw_prepare_calls` | Build calldata from a function signature and arguments, in the shape `jaw_send_calls` takes, at most 24,576 bytes per call. Sends nothing. |
 | `jaw_session_history` | See what this connection paid and ran on its own. |
 
 **Requests the owner approves.** Each returns a link to show on its own line. The owner has 30 minutes.
 
 | Tool | The owner approves | Use it to |
 | --- | --- | --- |
-| `jaw_send_calls` | Up to 100 calls, run together on one network, and pays the network fee | Do anything asked once: a transfer, a contract call. Simulate first. |
+| `jaw_send_calls` | Up to 100 calls, at most 24,576 bytes of calldata each, run together on one network, and pays the network fee | Do anything asked once: a transfer, a contract call. Simulate first. |
 | `jaw_sign` | A message or typed data, shown in the wallet | Sign for a site that asks for a signature. Say in one sentence what the signature allows. |
 | `jaw_swap` | The swap or bridge deposit, with its token approval, in one batch | Swap on one chain, or swap and bridge across chains, also to pay someone on another network. Up to 5 tokens into one in a single batch. |
 | `jaw_grant_permissions` | A permission for this connection | Let the connection repeat an action or pay web services without asking each time. See below. |
@@ -61,6 +61,8 @@ Limits below are what the server enforced when this was written. The tool's own 
 | `jaw_add_funds` | Nothing; it opens the wallet's receive screen | Put money into the wallet. There is no card or bank purchase: the owner sends tokens from an exchange or another wallet. |
 | `jaw_add_account` | Adding another of their accounts to this connection | Only when the owner asks to add another account. Moves no funds. |
 | `jaw_session_x402_pay_once` | One payment of a fixed price, up to 100 USDC, to one service | Pay a web service once when the spend limit cannot: there is none, the owner declined one, or the price is over what it has left. |
+
+Swaps, `jaw_find_token` and `jaw_get_token_price` need a swap provider on the server. Without one, `jaw_swap` refuses with `swap_unavailable`.
 
 **Following a request.** Call each one right after the link is shown, with `waitSeconds` (30 suggested, 45 at most), and again while it answers `awaiting_owner`. Never ask the owner whether they approved: the tool knows first. `jaw_get_calls_status` is the exception: never call it in the turn that showed the link, only on the owner's next messages.
 

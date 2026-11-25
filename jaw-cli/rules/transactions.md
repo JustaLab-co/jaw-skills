@@ -58,7 +58,7 @@ jaw rpc call wallet_sendCalls \
 
 ### Use a paymaster (sponsored gas)
 
-Set `paymasterUrl` in config, then include the capability in the call:
+Pass the paymaster in the call's capabilities:
 
 ```bash
 jaw rpc call wallet_sendCalls \
@@ -66,12 +66,7 @@ jaw rpc call wallet_sendCalls \
   -o json -y
 ```
 
-Or set it globally via config:
-
-```bash
-jaw config set paymasterUrl=https://paymaster.example.com
-jaw rpc call wallet_sendCalls '{"calls":[{"to":"0xRECIPIENT","value":"0"}]}' -o json -y
-```
+Or set one per chain under `paymasters` in the config, see <rules/configuration.md>. The older `paymasterUrl` key is deprecated and migrated to `paymasters` on load.
 
 ### Check transaction status
 
