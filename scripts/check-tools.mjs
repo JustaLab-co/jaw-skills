@@ -69,8 +69,15 @@ export function listTools(command, args, timeoutMs = 120_000) {
       const lines = (pending + chunk).split('\n');
       pending = lines.pop();
       for (const line of lines) {
-        const msg = JSON.parse(line);
-        if (msg.id === 2) finish(() => resolve(msg.result.tools.map((t) => t.name)));
+        let msg;
+        try {
+          msg = JSON.parse(line);
+        } catch {
+          return finish(() => reject(new Error(`not JSON-RPC on stdout: ${line}`)));
+        }
+        if (msg.id !== 2) continue;
+        if (msg.error) return finish(() => reject(new Error(`tools/list failed: ${msg.error.message}`)));
+        return finish(() => resolve(msg.result.tools.map((t) => t.name)));
       }
     });
     child.on('error', (err) => finish(() => reject(err)));
@@ -114,4 +121,4 @@ async function main([flag, dir, ref = 'origin/main']) {
   return problems.length ? 1 : 0;
 }
 
-if (fileURLToPath(import.meta.url) === realpathSync(process.argv[1])) process.exitCode = await main(process.argv.slice(2));
+if (process.argv[1] && fileURLToPath(import.meta.url) === realpathSync(process.argv[1])) process.exitCode = await main(process.argv.slice(2));

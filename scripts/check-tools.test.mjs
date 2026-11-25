@@ -49,6 +49,19 @@ test('listTools fails when the server exits without answering', async () => {
   await assert.rejects(listTools(process.execPath, [fake, '--exit']), /exited with code 3/);
 });
 
+test('listTools names a stdout line that is not JSON-RPC', async () => {
+  await assert.rejects(listTools(process.execPath, [fake, '--noise']), /not JSON-RPC on stdout: starting up/);
+});
+
+test('listTools passes on an error answer to tools/list', async () => {
+  await assert.rejects(listTools(process.execPath, [fake, '--refuse']), /tools\/list failed: no tools here/);
+});
+
+test('the script can be imported without running', () => {
+  const { status, stdout, stderr } = spawnSync(process.execPath, ['--input-type=module', '-e', `await import(${JSON.stringify(join(import.meta.dirname, 'check-tools.mjs'))})`], { encoding: 'utf8' });
+  assert.deepEqual({ status, stdout, stderr }, { status: 0, stdout: '', stderr: '' });
+});
+
 test('listTools fails when the command does not exist', async () => {
   await assert.rejects(listTools('jaw-no-such-command', []), /ENOENT/);
 });
